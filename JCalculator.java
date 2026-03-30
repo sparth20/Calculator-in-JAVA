@@ -1,6 +1,7 @@
 // Advanced calculator using java.
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,6 +11,26 @@ public class JCalculator extends JFrame implements ActionListener {
     private double firstNumber = 0;
     private String operation = "";
     private boolean startNewNumber = true;
+    class RoundedButton extends JButton {
+        private int radius;
+
+        public RoundedButton(String label, int radius) {
+            super(label);
+            this.radius = radius;
+            setContentAreaFilled(false);
+            setFocusPainted(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
+            super.paintComponent(g2);
+            g2.dispose();
+        }
+    }
 
     public JCalculator() {
         // Set up the frame
@@ -17,26 +38,29 @@ public class JCalculator extends JFrame implements ActionListener {
         setSize(400, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(Color.GRAY);
+        getContentPane().setBackground(Color.white);
 
         // Create display
         display = new JTextField();
         display.setFont(new Font("Times-New-Roman", Font.BOLD, 34));
         display.setHorizontalAlignment(JTextField.RIGHT);
         display.setEditable(false);
-        display.setBackground(Color.WHITE);
+        display.setBorder(new EmptyBorder(10, 10, 30, 10));
+        display.setBackground(Color.white);
+        display.setForeground(Color.BLACK);
+        display.setBorder(null);
         add(display, BorderLayout.NORTH);
 
         // Create button panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(6, 5, 5, 5));
-        buttonPanel.setBackground(Color.LIGHT_GRAY);
+        buttonPanel.setBackground(Color.white);
 
         // Button labels
         String[] buttons = {
             "7", "8", "9", "/", "sin",
             "4", "5", "6", "*", "cos",
-            "1", "2", "3", "-", "tan",
+            "1", "2", "3", "—", "tan",
             "0", ".", "=", "+", "log",
             "C", "CE", "√", "x²", "ln",
             "x^y", "%", "n!", "(", ")"
@@ -44,10 +68,16 @@ public class JCalculator extends JFrame implements ActionListener {
 
         // Create and add buttons
         for (String text : buttons) {
-            JButton button = new JButton(text);
-            button.setFont(new Font("Arial", Font.BOLD, 16));
+            RoundedButton button = new RoundedButton(text, 34);
+            button.setBorderPainted(false);
+            if (text.equals("C") || text.equals("CE")) {
+                button.setBackground(Color.cyan);
+            } else {
+                button.setBackground(new Color(220, 220, 220));
+                button.setForeground(Color.black);
+            }
+            button.setFont(new Font("Arial", Font.BOLD, 20));
             button.addActionListener(this);
-            button.setBackground(Color.WHITE);
             buttonPanel.add(button);
         }
 
@@ -58,7 +88,6 @@ public class JCalculator extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
 
-        // Handle digits, decimal point, and parentheses
         if (command.matches("[0-9]") || command.equals(".") || command.equals("(") || command.equals(")")) {
             if (startNewNumber) {
                 display.setText(command);
@@ -112,7 +141,6 @@ public class JCalculator extends JFrame implements ActionListener {
                 startNewNumber = true;
             }
         }
-        // Handle binary operations (+, -, *, /, x^y, %)
         else {
             if (!operation.isEmpty() && !startNewNumber) {
                 calculate();
@@ -159,7 +187,7 @@ public class JCalculator extends JFrame implements ActionListener {
                 case "+":
                     result = firstNumber + secondNumber;
                     break;
-                case "-":
+                case "—":
                     result = firstNumber - secondNumber;
                     break;
                 case "*":
